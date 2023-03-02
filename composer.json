@@ -16,9 +16,10 @@
     ],
     "require": {
         "php": "^7.3 || ^8.0",
-        "symfony/framework-bundle": "^5.0",
-        "symfony/error-handler": "^5.0",
+        "doctrine/collections": "^1.8",
         "doctrine/common": "^3.0",
+        "symfony/error-handler": "^5.0",
+        "symfony/framework-bundle": "^5.0",
         "symfony/process": "^5.0"
     },
     "require-dev": {
@@ -49,5 +50,8 @@
         "branch-alias": {
             "dev-master": "4.0.x-dev"
         }
+    },
+    "config": {
+        "sort-packages": true
     }
 }
