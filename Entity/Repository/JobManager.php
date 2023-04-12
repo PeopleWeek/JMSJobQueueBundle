@@ -93,9 +93,9 @@ class JobManager
         return $firstJob;
     }
 
-    public function findStartableJob($workerName, array &$excludedIds = array(), $excludedQueues = array(), $restrictedQueues = array())
+    public function findStartableJob($workerName, array &$excludedIds = array(), $excludedQueues = array(), $restrictedQueues = array(), ?callable $getAdditionalConditions = null)
     {
-        while (null !== $job = $this->findPendingJob($excludedIds, $excludedQueues, $restrictedQueues)) {
+        while (null !== $job = $this->findPendingJob($excludedIds, $excludedQueues, $restrictedQueues, $getAdditionalConditions)) {
             if ($job->isStartable() && $this->acquireLock($workerName, $job)) {
                 return $job;
             }
@@ -193,7 +193,7 @@ class JobManager
         return array($relClass, json_encode($relId));
     }
 
-    public function findPendingJob(array $excludedIds = array(), array $excludedQueues = array(), array $restrictedQueues = array())
+    public function findPendingJob(array $excludedIds = array(), array $excludedQueues = array(), array $restrictedQueues = array(), ?callable $getAdditionalConditions = null)
     {
         $qb = $this->getJobManager()->createQueryBuilder();
         $qb->select('j')->from(Job::class, 'j')
@@ -225,7 +225,10 @@ class JobManager
             $qb->setParameter('restrictedQueues', $restrictedQueues, Connection::PARAM_STR_ARRAY);
         }
 
-        $qb->where(call_user_func_array(array($qb->expr(), 'andX'), $conditions));
+        $qb->where(call_user_func_array(
+            array($qb->expr(), 'andX'),
+            array_merge($conditions, $getAdditionalConditions ? $getAdditionalConditions($qb) : [])
+        ));
 
         return $qb->getQuery()->setMaxResults(1)->getOneOrNullResult();
     }
