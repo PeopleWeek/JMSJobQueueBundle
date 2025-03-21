@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManager;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\Event\StateChangeEvent;
 use JMS\JobQueueBundle\Entity\Job;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class JobManagerTest extends BaseTestCase
 {
@@ -176,10 +177,12 @@ class JobManagerTest extends BaseTestCase
         $this->em->persist($b);
         $this->em->flush();
 
-        $this->dispatcher->expects($this->at(0))
+        assert($this->dispatcher instanceof MockObject);
+
+        $this->dispatcher->expects($this->exactly(0))
             ->method('dispatch')
             ->with(new StateChangeEvent($a, 'terminated'), 'jms_job_queue.job_state_change');
-        $this->dispatcher->expects($this->at(1))
+        $this->dispatcher->expects($this->exactly(1))
             ->method('dispatch')
             ->with(new StateChangeEvent($b, 'canceled'), 'jms_job_queue.job_state_change');
 
@@ -201,11 +204,13 @@ class JobManagerTest extends BaseTestCase
         $this->em->persist($b);
         $this->em->flush();
 
-        $this->dispatcher->expects($this->at(0))
+        assert($this->dispatcher instanceof MockObject);
+
+        $this->dispatcher->expects($this->exactly(0))
             ->method('dispatch')
             ->with(new StateChangeEvent($a, 'canceled'), 'jms_job_queue.job_state_change');
 
-        $this->dispatcher->expects($this->at(1))
+        $this->dispatcher->expects($this->exactly(1))
             ->method('dispatch')
             ->with(new StateChangeEvent($b, 'canceled'), 'jms_job_queue.job_state_change');
 
@@ -224,13 +229,15 @@ class JobManagerTest extends BaseTestCase
         $this->em->persist($a);
         $this->em->flush();
 
-        $this->dispatcher->expects($this->at(0))
+        assert($this->dispatcher instanceof MockObject);
+
+        $this->dispatcher->expects($this->exactly(0))
             ->method('dispatch')
             ->with(new StateChangeEvent($a, 'failed'), 'jms_job_queue.job_state_change');
-        $this->dispatcher->expects($this->at(1))
+        $this->dispatcher->expects($this->exactly(1))
             ->method('dispatch')
             ->with(new LogicalNot($this->equalTo(new StateChangeEvent($a, 'failed'))), 'jms_job_queue.job_state_change');
-        $this->dispatcher->expects($this->at(2))
+        $this->dispatcher->expects($this->exactly(2))
             ->method('dispatch')
             ->with(new LogicalNot($this->equalTo(new StateChangeEvent($a, 'failed'))), 'jms_job_queue.job_state_change');
 
