@@ -28,7 +28,7 @@ use PDO;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
@@ -56,7 +56,7 @@ class JobManager
     {
         return $this->getJobManager()->createQuery("SELECT j FROM " . Job::class . " j WHERE j.command = :command AND j.args = :args")
             ->setParameter('command', $command)
-            ->setParameter('args', $args, Type::JSON_ARRAY)
+            ->setParameter('args', $args, Types::JSON)
             ->setMaxResults(1)
             ->getOneOrNullResult();
     }
