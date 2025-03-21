@@ -3,7 +3,8 @@
 namespace JMS\JobQueueBundle\Controller;
 
 use Doctrine\Common\Util\ClassUtils;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\View\JobFilter;
@@ -16,16 +17,20 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class JobController extends AbstractController
 {
     #[Route(path: '/', name: 'jms_jobs_overview')]
-    public function overviewAction(Request $request)
+    public function overviewAction(Request $request, ManagerRegistry $doctrine, JobManager $repo)
     {
         $jobFilter = JobFilter::fromRequest($request);
 
-        $qb = $this->getEm()->createQueryBuilder();
+        $entityManager = $doctrine->getManagerForClass(Job::class);
+
+        assert($entityManager instanceof EntityManagerInterface);
+
+        $qb = $entityManager->createQueryBuilder();
         $qb->select('j')->from(Job::class, 'j')
             ->where($qb->expr()->isNull('j.originalJob'))
             ->orderBy('j.id', 'desc');
 
-        $lastJobsWithError = $jobFilter->isDefaultPage() ? $this->getRepo()->findLastJobsWithError(5) : [];
+        $lastJobsWithError = $jobFilter->isDefaultPage() ? $repo->findLastJobsWithError(5) : [];
         foreach ($lastJobsWithError as $i => $job) {
             $qb->andWhere($qb->expr()->neq('j.id', '?'.$i));
             $qb->setParameter($i, $job->getId());
@@ -62,14 +67,14 @@ class JobController extends AbstractController
     }
 
     #[Route(path: '/{id}', name: 'jms_jobs_details')]
-    public function detailsAction(Job $job)
+    public function detailsAction(Job $job, ManagerRegistry $doctrine, JobManager $repo)
     {
         $relatedEntities = array();
         foreach ($job->getRelatedEntities() as $entity) {
             $class = ClassUtils::getClass($entity);
             $relatedEntities[] = array(
                 'class' => $class,
-                'id' => json_encode($this->get('doctrine')->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)),
+                'id' => json_encode($doctrine->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)),
                 'raw' => $entity,
             );
         }
@@ -77,7 +82,12 @@ class JobController extends AbstractController
         $statisticData = $statisticOptions = array();
         if ($this->getParameter('jms_job_queue.statistics')) {
             $dataPerCharacteristic = array();
-            foreach ($this->get('doctrine')->getManagerForClass(Job::class)->getConnection()->query("SELECT * FROM jms_job_statistics WHERE job_id = ".$job->getId()) as $row) {
+
+            $manager = $doctrine->getManagerForClass(Job::class);
+
+            assert($manager instanceof EntityManagerInterface);
+
+            foreach ($manager->getConnection()->executeQuery("SELECT * FROM jms_job_statistics WHERE job_id = ".$job->getId()) as $row) {
                 $dataPerCharacteristic[$row['characteristic']][] = array(
                     // hack because postgresql lower-cases all column names.
                     array_key_exists('createdAt', $row) ? $row['createdAt'] : $row['createdat'],
@@ -114,14 +124,14 @@ class JobController extends AbstractController
         return $this->render('@JMSJobQueue/Job/details.html.twig', array(
             'job' => $job,
             'relatedEntities' => $relatedEntities,
-            'incomingDependencies' => $this->getRepo()->getIncomingDependencies($job),
+            'incomingDependencies' => $repo->getIncomingDependencies($job),
             'statisticData' => $statisticData,
             'statisticOptions' => $statisticOptions,
         ));
     }
 
     #[Route(path: '/{id}/retry', name: 'jms_jobs_retry_job')]
-    public function retryJobAction(Job $job)
+    public function retryJobAction(Job $job, ManagerRegistry $doctrine)
     {
         $state = $job->getState();
 
@@ -135,21 +145,15 @@ class JobController extends AbstractController
 
         $retryJob = clone $job;
 
-        $this->getEm()->persist($retryJob);
-        $this->getEm()->flush();
+        $em = $doctrine->getManagerForClass(Job::class);
+
+        assert($em instanceof EntityManagerInterface);
+
+        $em->persist($retryJob);
+        $em->flush();
 
         $url = $this->generateUrl('jms_jobs_details', array('id' => $retryJob->getId()));
 
         return new RedirectResponse($url, 201);
-    }
-
-    private function getEm(): EntityManager
-    {
-        return $this->get('doctrine')->getManagerForClass(Job::class);
-    }
-
-    private function getRepo(): JobManager
-    {
-        return $this->get('jms_job_queue.job_manager');
     }
 }
