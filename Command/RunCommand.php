@@ -18,6 +18,10 @@
 
 namespace JMS\JobQueueBundle\Command;
 
+use RuntimeException;
+use LogicException;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\Persistence\ObjectManager;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
@@ -90,7 +94,7 @@ class RunCommand extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $startTime = time();
 
@@ -121,7 +125,7 @@ class RunCommand extends Command
         }
 
         if (strlen($workerName) > 50) {
-            throw new \RuntimeException(sprintf(
+            throw new RuntimeException(sprintf(
                 '"worker-name" must not be longer than 50 chars, but got "%s" (%d chars).',
                 $workerName,
                 strlen($workerName)
@@ -275,8 +279,8 @@ class RunCommand extends Command
     }
 
     /**
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     private function checkRunningJobs()
     {
@@ -366,7 +370,7 @@ class RunCommand extends Command
         }
 
         if (Job::STATE_RUNNING !== $newState) {
-            throw new \LogicException(sprintf('Unsupported new state "%s".', $newState));
+            throw new LogicException(sprintf('Unsupported new state "%s".', $newState));
         }
 
         $job->setState(Job::STATE_RUNNING);

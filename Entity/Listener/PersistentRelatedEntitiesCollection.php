@@ -2,6 +2,7 @@
 
 namespace JMS\JobQueueBundle\Entity\Listener;
 
+use LogicException;
 use ArrayIterator;
 use Closure;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -113,7 +114,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      */
     public function remove($key)
     {
-        throw new \LogicException('remove() is not supported.');
+        throw new LogicException('remove() is not supported.');
     }
 
     /**
@@ -124,7 +125,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      */
     public function removeElement($element)
     {
-        throw new \LogicException('removeElement() is not supported.');
+        throw new LogicException('removeElement() is not supported.');
     }
 
     /**
@@ -133,7 +134,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      * @see containsKey()
      *
      * @param mixed $offset
-     * @return bool
      */
     public function offsetExists($offset): bool
     {
@@ -146,9 +146,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      * ArrayAccess implementation of offsetGet()
      *
      * @see get()
-     *
-     * @param mixed $offset
-     * @return mixed
      */
     public function offsetGet(mixed $offset): mixed
     {
@@ -163,27 +160,20 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @see add()
      * @see set()
-     *
-     * @param mixed $offset
-     * @param mixed $value
-     * @return bool
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new \LogicException('Adding new related entities is not supported after initial creation.');
+        throw new LogicException('Adding new related entities is not supported after initial creation.');
     }
 
     /**
      * ArrayAccess implementation of offsetUnset()
      *
      * @see remove()
-     *
-     * @param mixed $offset
-     * @return mixed
      */
     public function offsetUnset(mixed $offset): void
     {
-        throw new \LogicException('unset() is not supported.');
+        throw new LogicException('unset() is not supported.');
     }
 
     /**
@@ -321,7 +311,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      */
     public function set($key, $value)
     {
-        throw new \LogicException('set() is not supported.');
+        throw new LogicException('set() is not supported.');
     }
 
     /**
@@ -332,7 +322,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      */
     public function add($value)
     {
-        throw new \LogicException('Adding new entities is not supported after creation.');
+        throw new LogicException('Adding new entities is not supported after creation.');
     }
 
     /**
@@ -351,8 +341,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
 
     /**
      * Gets an iterator for iterating over the elements in the collection.
-     *
-     * @return ArrayIterator
      */
     public function getIterator(): ArrayIterator
     {
@@ -365,7 +353,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      * Applies the given function to each element in the collection and returns
      * a new collection with the elements returned by the function.
      *
-     * @param Closure $func
      * @return Collection
      */
     public function map(Closure $func)
@@ -448,7 +435,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      */
     public function clear()
     {
-        throw new \LogicException('clear() is not supported.');
+        throw new LogicException('clear() is not supported.');
     }
 
     /**
@@ -473,7 +460,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      * Select all elements from a selectable that match the criteria and
      * return a new collection containing these elements.
      *
-     * @param  Criteria $criteria
      * @return Collection
      */
     public function matching(Criteria $criteria)

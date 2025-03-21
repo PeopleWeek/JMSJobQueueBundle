@@ -18,9 +18,10 @@
 
 namespace JMS\JobQueueBundle\Exception;
 
+use InvalidArgumentException;
 use JMS\JobQueueBundle\Entity\Job;
 
-class InvalidStateTransitionException extends \InvalidArgumentException
+class InvalidStateTransitionException extends InvalidArgumentException
 {
     private $job;
     private $newState;

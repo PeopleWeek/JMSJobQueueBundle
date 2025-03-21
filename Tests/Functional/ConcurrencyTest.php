@@ -2,6 +2,7 @@
 
 namespace JMS\JobQueueBundle\Tests\Functional;
 
+use RuntimeException;
 use Doctrine\ORM\EntityManager;
 use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Component\Process\Process;
@@ -84,7 +85,7 @@ CONFIG
 
         foreach ($this->processes as $process) {
             if ( ! $process->isRunning()) {
-                throw new \RuntimeException(sprintf('The process "%s" exited prematurely:'."\n\n%s\n\n%s", $process->getCommandLine(), $process->getOutput(), $process->getErrorOutput()));
+                throw new RuntimeException(sprintf('The process "%s" exited prematurely:'."\n\n%s\n\n%s", $process->getCommandLine(), $process->getOutput(), $process->getErrorOutput()));
             }
 
             $process->stop(5);
@@ -110,7 +111,7 @@ CONFIG
                 ->setParameter('nonFinalStates', array(Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING))
                 ->getResult();
 
-            throw new \RuntimeException('Not all jobs were processed: '."\n\n".implode("\n\n", $jobs));
+            throw new RuntimeException('Not all jobs were processed: '."\n\n".implode("\n\n", $jobs));
         }
     }
 
@@ -123,7 +124,7 @@ CONFIG
 
         sleep(2);
         if ( ! $proc->isRunning()) {
-            throw new \RuntimeException(sprintf(
+            throw new RuntimeException(sprintf(
                 "Process '%s' failed to start:\n\n%s\n\n%s",
                 $proc->getCommandLine(),
                 $proc->getOutput(),

@@ -18,6 +18,7 @@
 
 namespace JMS\JobQueueBundle\Tests\Entity;
 
+use ReflectionProperty;
 use JMS\JobQueueBundle\Entity\Job;
 use PHPUnit\Framework\TestCase;
 
@@ -247,7 +248,7 @@ class JobTest extends TestCase
 
     private function setField($obj, $field, $value)
     {
-        $ref = new \ReflectionProperty($obj, $field);
+        $ref = new ReflectionProperty($obj, $field);
         $ref->setAccessible(true);
         $ref->setValue($obj, $value);
     }

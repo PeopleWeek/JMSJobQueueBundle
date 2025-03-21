@@ -18,6 +18,9 @@
 
 namespace JMS\JobQueueBundle\Entity;
 
+use InvalidArgumentException;
+use DateTime;
+use RuntimeException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\JobQueueBundle\Exception\InvalidStateTransitionException;
@@ -201,10 +204,10 @@ class Job
     public function __construct($command, array $args = array(), $confirmed = true, $queue = self::DEFAULT_QUEUE, $priority = self::PRIORITY_DEFAULT)
     {
         if (trim($queue) === '') {
-            throw new \InvalidArgumentException('$queue must not be empty.');
+            throw new InvalidArgumentException('$queue must not be empty.');
         }
         if (strlen($queue) > self::MAX_QUEUE_LENGTH) {
-            throw new \InvalidArgumentException(sprintf('The maximum queue length is %d, but got "%s" (%d chars).', self::MAX_QUEUE_LENGTH, $queue, strlen($queue)));
+            throw new InvalidArgumentException(sprintf('The maximum queue length is %d, but got "%s" (%d chars).', self::MAX_QUEUE_LENGTH, $queue, strlen($queue)));
         }
 
         $this->command = $command;
@@ -212,8 +215,8 @@ class Job
         $this->state = $confirmed ? self::STATE_PENDING : self::STATE_NEW;
         $this->queue = $queue;
         $this->priority = $priority * -1;
-        $this->createdAt = new \DateTime();
-        $this->executeAfter = new \DateTime();
+        $this->createdAt = new DateTime();
+        $this->executeAfter = new DateTime();
         $this->executeAfter = $this->executeAfter->modify('-1 second');
         $this->dependencies = new ArrayCollection();
         $this->retryJobs = new ArrayCollection();
@@ -223,7 +226,7 @@ class Job
     public function __clone()
     {
         $this->state = self::STATE_PENDING;
-        $this->createdAt = new \DateTime();
+        $this->createdAt = new DateTime();
         $this->startedAt = null;
         $this->checkedAt = null;
         $this->closedAt = null;
@@ -292,7 +295,7 @@ class Job
                 }
 
                 if (self::STATE_CANCELED === $newState) {
-                    $this->closedAt = new \DateTime();
+                    $this->closedAt = new DateTime();
                 }
 
                 break;
@@ -303,10 +306,10 @@ class Job
                 }
 
                 if ($newState === self::STATE_RUNNING) {
-                    $this->startedAt = new \DateTime();
-                    $this->checkedAt = new \DateTime();
+                    $this->startedAt = new DateTime();
+                    $this->checkedAt = new DateTime();
                 } else if ($newState === self::STATE_CANCELED) {
-                    $this->closedAt = new \DateTime();
+                    $this->closedAt = new DateTime();
                 }
 
                 break;
@@ -316,7 +319,7 @@ class Job
                     throw new InvalidStateTransitionException($this, $newState, array(self::STATE_FINISHED, self::STATE_FAILED, self::STATE_TERMINATED, self::STATE_INCOMPLETE));
                 }
 
-                $this->closedAt = new \DateTime();
+                $this->closedAt = new DateTime();
 
                 break;
 
@@ -348,7 +351,7 @@ class Job
         return $this->executeAfter;
     }
 
-    public function setExecuteAfter(\DateTime $executeAfter)
+    public function setExecuteAfter(DateTime $executeAfter)
     {
         $this->executeAfter = $executeAfter;
     }
@@ -387,7 +390,7 @@ class Job
     public function addRelatedEntity($entity)
     {
         if ( ! is_object($entity)) {
-            throw new \RuntimeException(sprintf('$entity must be an object.'));
+            throw new RuntimeException(sprintf('$entity must be an object.'));
         }
 
         if ($this->relatedEntities->contains($entity)) {
@@ -573,7 +576,7 @@ class Job
 
     public function checked()
     {
-        $this->checkedAt = new \DateTime();
+        $this->checkedAt = new DateTime();
     }
 
     public function getCheckedAt()

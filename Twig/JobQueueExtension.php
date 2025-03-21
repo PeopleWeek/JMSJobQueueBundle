@@ -2,6 +2,7 @@
 
 namespace JMS\JobQueueBundle\Twig;
 
+use RuntimeException;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -80,7 +81,7 @@ class JobQueueExtension extends AbstractExtension
             }
         }
 
-        throw new \RuntimeException(sprintf('The entity "%s" has no link generator.', get_class($entity)));
+        throw new RuntimeException(sprintf('The entity "%s" has no link generator.', get_class($entity)));
     }
 
     public function getLinkname($entity)
@@ -91,7 +92,7 @@ class JobQueueExtension extends AbstractExtension
             }
         }
 
-        throw new \RuntimeException(sprintf('The entity "%s" has no link generator.', get_class($entity)));
+        throw new RuntimeException(sprintf('The entity "%s" has no link generator.', get_class($entity)));
     }
 
     public function getName()

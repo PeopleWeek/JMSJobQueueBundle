@@ -2,6 +2,10 @@
 
 namespace JMS\JobQueueBundle\Console;
 
+use Exception;
+use PDO;
+use DateTime;
+
 declare(ticks = 10000000);
 
 use Doctrine\DBAL\Statement;
@@ -47,7 +51,7 @@ class Application extends BaseApplication
             $this->saveDebugInformation();
 
             return $rs;
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             $this->saveDebugInformation($ex);
 
             throw $ex;
@@ -68,8 +72,8 @@ class Application extends BaseApplication
             $this->insertStatStmt = $this->getConnection()->prepare($this->insertStatStmt);
         }
 
-        $this->insertStatStmt->bindValue('jobId', $jobId, \PDO::PARAM_INT);
-        $this->insertStatStmt->bindValue('createdAt', new \DateTime(), Type::getType('datetime'));
+        $this->insertStatStmt->bindValue('jobId', $jobId, PDO::PARAM_INT);
+        $this->insertStatStmt->bindValue('createdAt', new DateTime(), Type::getType('datetime'));
 
         foreach ($characteristics as $name => $value) {
             $this->insertStatStmt->bindValue('name', $name);
@@ -78,7 +82,7 @@ class Application extends BaseApplication
         }
     }
 
-    private function saveDebugInformation(\Exception $ex = null)
+    private function saveDebugInformation(Exception $ex = null)
     {
         if ( ! $this->input->hasOption('jms-job-id') || null === $jobId = $this->input->getOption('jms-job-id')) {
             return;
@@ -93,10 +97,10 @@ class Application extends BaseApplication
                 'trace' => serialize($ex ? FlattenException::create($ex) : null),
             ),
             array(
-                'id' => \PDO::PARAM_INT,
-                'memoryUsage' => \PDO::PARAM_INT,
-                'memoryUsageReal' => \PDO::PARAM_INT,
-                'trace' => \PDO::PARAM_LOB,
+                'id' => PDO::PARAM_INT,
+                'memoryUsage' => PDO::PARAM_INT,
+                'memoryUsageReal' => PDO::PARAM_INT,
+                'trace' => PDO::PARAM_LOB,
             )
         );
     }

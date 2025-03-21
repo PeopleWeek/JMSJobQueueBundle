@@ -18,6 +18,13 @@
 
 namespace JMS\JobQueueBundle\Entity\Repository;
 
+use RuntimeException;
+use Doctrine\Common\Persistence\Proxy;
+use InvalidArgumentException;
+use DateTime;
+use Exception;
+use LogicException;
+use PDO;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\Connection;
@@ -60,7 +67,7 @@ class JobManager
             return $job;
         }
 
-        throw new \RuntimeException(sprintf('Found no job for command "%s" with args "%s".', $command, json_encode($args)));
+        throw new RuntimeException(sprintf('Found no job for command "%s" with args "%s".', $command, json_encode($args)));
     }
 
     public function getOrCreateIfNotExists($command, array $args = array())
@@ -174,10 +181,10 @@ class JobManager
     private function getRelatedEntityIdentifier($entity)
     {
         if ( ! is_object($entity)) {
-            throw new \RuntimeException('$entity must be an object.');
+            throw new RuntimeException('$entity must be an object.');
         }
 
-        if ($entity instanceof \Doctrine\Common\Persistence\Proxy) {
+        if ($entity instanceof Proxy) {
             $entity->__load();
         }
 
@@ -187,7 +194,7 @@ class JobManager
         asort($relId);
 
         if ( ! $relId) {
-            throw new \InvalidArgumentException(sprintf('The identifier for entity of class "%s" was empty.', $relClass));
+            throw new InvalidArgumentException(sprintf('The identifier for entity of class "%s" was empty.', $relClass));
         }
 
         return array($relClass, json_encode($relId));
@@ -205,7 +212,7 @@ class JobManager
         $conditions[] = $qb->expr()->isNull('j.workerName');
 
         $conditions[] = $qb->expr()->lt('j.executeAfter', ':now');
-        $qb->setParameter(':now', new \DateTime(), 'datetime');
+        $qb->setParameter(':now', new DateTime(), 'datetime');
 
         $conditions[] = $qb->expr()->eq('j.state', ':state');
         $qb->setParameter('state', Job::STATE_PENDING);
@@ -252,7 +259,7 @@ class JobManager
 
                 $this->getJobManager()->detach($job);
             }
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             $this->getJobManager()->getConnection()->rollback();
 
             throw $ex;
@@ -349,7 +356,7 @@ class JobManager
                 return;
 
             default:
-                throw new \LogicException(sprintf('Non allowed state "%s" in closeJobInternal().', $finalState));
+                throw new LogicException(sprintf('Non allowed state "%s" in closeJobInternal().', $finalState));
         }
     }
 
@@ -387,7 +394,7 @@ class JobManager
     {
         $jobIds = $this->getJobManager()->getConnection()
             ->executeQuery("SELECT source_job_id FROM jms_job_dependencies WHERE dest_job_id = :id", array('id' => $job->getId()))
-            ->fetchAll(\PDO::FETCH_COLUMN);
+            ->fetchAll(PDO::FETCH_COLUMN);
 
         return $jobIds;
     }

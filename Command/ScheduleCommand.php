@@ -2,6 +2,8 @@
 
 namespace JMS\JobQueueBundle\Command;
 
+use RuntimeException;
+use DateTime;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Query;
@@ -41,19 +43,19 @@ class ScheduleCommand extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $maxRuntime = $input->getOption('max-runtime');
         if ($maxRuntime > 300) {
             $maxRuntime += random_int(0, (integer)($input->getOption('max-runtime') * 0.05));
         }
         if ($maxRuntime <= 0) {
-            throw new \RuntimeException('Max. runtime must be greater than zero.');
+            throw new RuntimeException('Max. runtime must be greater than zero.');
         }
 
         $minJobInterval = (integer)$input->getOption('min-job-interval');
         if ($minJobInterval <= 0) {
-            throw new \RuntimeException('Min. job interval must be greater than zero.');
+            throw new RuntimeException('Min. job interval must be greater than zero.');
         }
 
         $jobSchedulers = $this->populateJobSchedulers();
@@ -87,7 +89,7 @@ class ScheduleCommand extends Command
 
     /**
      * @param JobScheduler[] $jobSchedulers
-     * @param \DateTime[] $jobsLastRunAt
+     * @param DateTime[] $jobsLastRunAt
      */
     private function scheduleJobs(OutputInterface $output, array $jobSchedulers, array &$jobsLastRunAt)
     {
@@ -111,13 +113,13 @@ class ScheduleCommand extends Command
         }
     }
 
-    private function acquireLock($commandName, \DateTime $lastRunAt)
+    private function acquireLock($commandName, DateTime $lastRunAt)
     {
         /** @var EntityManager $em */
         $em = $this->registry->getManagerForClass(CronJob::class);
         $con = $em->getConnection();
 
-        $now = new \DateTime();
+        $now = new DateTime();
         $affectedRows = $con->executeUpdate(
             "UPDATE jms_cron_jobs SET lastRunAt = :now WHERE command = :command AND lastRunAt = :lastRunAt",
             array(
@@ -157,7 +159,7 @@ class ScheduleCommand extends Command
         foreach ($this->cronCommands as $command) {
             /** @var CronCommand $command */
             if ( ! $command instanceof Command) {
-                throw new \RuntimeException('CronCommand should only be used on Symfony commands.');
+                throw new RuntimeException('CronCommand should only be used on Symfony commands.');
             }
 
             $schedulers[$command->getName()] = new CommandScheduler($command->getName(), $command);
